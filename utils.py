@@ -2,6 +2,7 @@
 
 import datetime
 import os
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -14,7 +15,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 
 def reshape_X(
-    X_train: np.ndarray or pd.DataFrame, X_test: np.ndarray or pd.DataFrame
+    X_train: Union[np.ndarray, pd.DataFrame], X_test: Union[np.ndarray, pd.DataFrame]
 ) -> tuple:
     """
     The function `reshape_X` takes in two inputs, `X_train` and `X_test`, which can be either a numpy
@@ -22,10 +23,10 @@ def reshape_X(
 
     :param X_train: The training data, which can be either a numpy array or a pandas DataFrame. It
     represents the input features for training a machine learning model
-    :type X_train: np.ndarray or pd.DataFrame
+    :type X_train: Union[np.ndarray, pd.DataFrame]
     :param X_test: The X_test parameter is the test dataset that you want to reshape. It can be either a
     numpy array or a pandas DataFrame
-    :type X_test: np.ndarray or pd.DataFrame
+    :type X_test: Union[np.ndarray, pd.DataFrame]
     :return: a tuple containing the reshaped X_train and X_test arrays or dataframes.
     """
     if isinstance(X_train, (pd.DataFrame, pd.Series)) and X_train.values.ndim == 1:
