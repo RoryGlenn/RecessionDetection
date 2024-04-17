@@ -13,6 +13,124 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
+import random
+
+import plotly.express as px
+from fredapi import Fred
+
+
+FRED_API_KEY = "612c90fb30af12767bbcaf9513bac5ed"
+fred = Fred(api_key=FRED_API_KEY)
+
+
+def get_data_after_date(
+    data: pd.DataFrame, years: int = 1, days: int = 0
+) -> pd.DataFrame:
+    data_clean = data.dropna()
+
+    # get the most recent date, convert to datetime obj and then get 1 year ago date
+    most_recent_dt = data_clean.index[-1]
+    one_year_ago_dt = most_recent_dt - pd.DateOffset(years=years, days=days)
+    return data_clean.loc[one_year_ago_dt:]
+
+
+def get_recession_data() -> pd.DataFrame:
+    """
+    Creates the recession dates dataframe
+
+    Returns:
+    - pd.DataFrame: The recession dates dataframe.
+    """
+    df_recession = pd.read_csv("data/USREC.csv")
+    df_recession = df_recession.rename(columns={"USREC": "recession", "DATE": "date"})
+    df_recession["date"] = pd.to_datetime(df_recession["date"])
+    df_recession = df_recession.set_index("date")
+    return df_recession
+
+
+def get_recession_start_end_list(recdf):
+    reclist = []
+    recdf.reset_index(inplace=True)
+
+    # loop through the recession dataframe and find the start and end dates for each recession
+    startdate, enddate = None, None
+    for i in range(0, len(recdf)):
+        if recdf.iloc[i, 1] == 1:  # recession detected
+            startdate = recdf.iloc[i, 0]
+
+            for j in range(i, len(recdf)):
+                if recdf.iloc[j, 1] == 0:  # end of the recession
+                    enddate = recdf.iloc[j, 0]
+                    break
+
+        if startdate and enddate:
+            if (
+                reclist and enddate == reclist[-1][1]
+            ):  # if the enddate is the same as the last one, skip
+                continue
+
+            reclist.append((startdate, enddate))
+
+            # after adding startdate and enddate to the list,
+            # jump to the enddate and start iterating from there
+            # i = j
+
+            startdate, enddate = None, None
+    return reclist
+
+
+def plot_data(symbol, title, years, plot_recession_dates=True, hline=None):
+    data = fred.get_series(symbol)
+    result = get_data_after_date(data, years=years)
+
+    if isinstance(result, pd.Series):
+        result = pd.DataFrame(result).reset_index()
+        result.columns = ["date", "data"]
+        result = result.set_index("date")
+
+    plot_it(result, title, plot_recession_dates=plot_recession_dates, hline=hline)
+
+
+def plot_it(data_df, title, plot_recession_dates=False, hline=None):
+    data_df.reset_index(inplace=True)
+
+    fig = px.line(
+        data_df,
+        x="date",
+        y=data_df.columns,
+        hover_data={"date": "|%B %d, %Y"},
+        title=title,
+        template="plotly_dark",
+        width=1000,
+        height=400,
+    )
+
+    if isinstance(hline, int or float):
+        fig.add_hline(y=hline, line_dash="dot", line_color="blue")
+
+    if plot_recession_dates:
+        recdf = get_recession_data()
+
+        start_date = data_df.date.min()
+        end_date = data_df.date.max()
+
+        # ensure that the recession dataframe only has dates that are in the data dataframe
+        recdf = recdf.loc[(recdf.index >= start_date) & (recdf.index <= end_date)]
+
+        for row in get_recession_start_end_list(recdf):
+            x0 = str(row[0].date())
+            x1 = str(row[1].date())
+
+            fig.add_vrect(
+                x0=x0,
+                x1=x1,
+                fillcolor="red",
+                opacity=0.25,
+                line_width=0,
+            )
+
+    fig.show()
+
 
 def reshape_X(
     X_train: Union[np.ndarray, pd.DataFrame], X_test: Union[np.ndarray, pd.DataFrame]
