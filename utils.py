@@ -4,20 +4,16 @@ import datetime
 import os
 from typing import Union
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.model_selection import GridSearchCV
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-
-import random
-
 import plotly.express as px
 from fredapi import Fred
-
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import PolynomialFeatures
 
 FRED_API_KEY = "612c90fb30af12767bbcaf9513bac5ed"
 fred = Fred(api_key=FRED_API_KEY)
@@ -70,10 +66,6 @@ def get_recession_start_end_list(recdf):
                 continue
 
             reclist.append((startdate, enddate))
-
-            # after adding startdate and enddate to the list,
-            # jump to the enddate and start iterating from there
-            # i = j
 
             startdate, enddate = None, None
     return reclist
