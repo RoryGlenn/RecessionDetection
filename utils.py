@@ -1,5 +1,3 @@
-# Description: Utility functions for the project
-
 import datetime
 import os
 from typing import Union
@@ -15,8 +13,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
-FRED_API_KEY = "612c90fb30af12767bbcaf9513bac5ed"
-fred = Fred(api_key=FRED_API_KEY)
+fred = Fred(api_key=os.environ["FRED_API_KEY"])
 
 
 def get_data_after_date(
