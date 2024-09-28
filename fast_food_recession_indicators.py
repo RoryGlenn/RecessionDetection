@@ -54,8 +54,6 @@ def calculate_yoy_growth(current_year_revenue, previous_year_revenue):
     ) * 100
 
 
-
-
 def extract_tables_from_html(html_file_path):
     """
     Extracts tables from an HTML file and saves them as CSV files.
